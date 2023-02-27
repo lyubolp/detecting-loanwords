@@ -1,4 +1,5 @@
 import os
+from collections import defaultdict
 from typing import Dict, List
 
 import pandas as pd
@@ -37,7 +38,7 @@ class TranscriptionGeneration:
             'ч': lambda position, word: 'tʃ',
             'ш': lambda position, word: 'ʃ',
             'щ': lambda position, word: 'ʃt',
-            'ъ': None,
+            'ъ': lambda position, word: 'ɤ̞' if self.__is_letter_emphasised(word, position) else 'ɐ',
             'ь': lambda position, word: 'j',
             'ю': lambda position, word: 'ju' if self.__is_letter_emphasised(word, position) else 'jo',
             'я': lambda position, word: 'ja' if self.__is_letter_emphasised(word, position) else 'jɐ'
@@ -52,7 +53,10 @@ class TranscriptionGeneration:
         Transcribe a single word
         """
         word = word.lower()
-        transcribed_letters = [self.letter_to_phoneme[letter](letter, word) for letter in word]
+        transcribed_letters = [
+            self.letter_to_phoneme[letter](letter, word) if letter in self.letter_to_phoneme
+            else letter
+            for letter in word]
         return ''.join(transcribed_letters)
 
     def generate_transcription(self, sentence: str, pretty=False) -> str:
@@ -60,12 +64,13 @@ class TranscriptionGeneration:
         Generate transcription of a whole sentence
         """
         tokens = word_tokenize(sentence)
+
         transcription = [self.__transcribe_word(word) for word in tokens]
         return ' '.join(transcription)
 
 
 class EmphasisGeneration:
-    def __init__(self, emphasis_db_path: str):
+    def __init__(self, emphasis_db_path: str) -> None:
         self.__path = emphasis_db_path
         self.__words = self.__load(self.__path)
 
