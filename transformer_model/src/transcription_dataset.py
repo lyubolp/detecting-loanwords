@@ -15,7 +15,6 @@ class TranscriptionDataset(Dataset):
     def __init__(self, files, start_file=0,
                  filepath_to_size_path='/mnt/d/Projects/masters-thesis/data/filepath_to_size.csv'):
         self.__files = files
-        self.__current_file = start_file
         self.__current_row = 0
 
         self.__filepath_to_size = pd.read_csv(filepath_to_size_path).sort_values(by=['filepath'])
@@ -34,30 +33,15 @@ class TranscriptionDataset(Dataset):
             raise IndexError
 
         current_file_path = self.__index_to_file_index[idx]
+        current_file_path_start_index = self.__filepath_to_start_and_end_index[current_file_path]['start_index']
 
-        
-
-
-        if idx >= TranscriptionDataset.__get_amount_of_entries(current_file_path):
-            self.__current_file += 1
-            self.__current_row = 0
-
-            current_file_path = self.__files[self.__current_file]
+        idx = idx - current_file_path_start_index
 
         current_file = pd.read_csv(current_file_path)
 
         row = current_file.iloc[self.__current_row]
 
-        self.__current_row += 1
         return row[0], row[2]
-
-    @staticmethod
-    def __get_amount_of_entries(filepath: str) -> int:
-        with open(filepath, encoding='utf-8') as file_pointer:
-            return sum(1 for _ in file_pointer.readlines())
-
-    def __get_total_amount_of_entries(self) -> int:
-        return self.__filepath_to_size['size'].sum()
 
     @staticmethod
     def __generate_index(filepath_to_size: pd.DataFrame) -> Dict[int, int]:
