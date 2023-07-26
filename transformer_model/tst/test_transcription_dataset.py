@@ -2,13 +2,17 @@
 МModule
 """
 import os
-import pandas as pd
 import unittest
+
+import pandas as pd
 
 from transformer_model.src.transcription_dataset import TranscriptionDataset
 
 
 class TranscriptDatasetTests(unittest.TestCase):
+    """
+    Unit tests for the TranscriptionDataset class
+    """
     @classmethod
     def setUpClass(cls):
         cls.__transcription_dir = '/mnt/d/Projects/masters-thesis/data/transcriptions'
@@ -41,7 +45,7 @@ class TranscriptDatasetTests(unittest.TestCase):
         Verify that the file switch logic works
         """
         # Arrange
-        with open(self.__files[1], encoding='utf-8') as file_pointer:
+        with open(self.__files[0], encoding='utf-8') as file_pointer:
             rows_in_first_file = len(file_pointer.readlines()) - 1
 
         target_index = rows_in_first_file + 1
@@ -60,6 +64,3 @@ class TranscriptDatasetTests(unittest.TestCase):
         # Assert
         self.assertEqual(expected_input, actual_input)
         self.assertEqual(expected_output, actual_output)
-
-    def test_03_check_split(self):
-        pass
