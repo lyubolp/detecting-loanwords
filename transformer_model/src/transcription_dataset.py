@@ -18,8 +18,6 @@ class TranscriptionDataset(Dataset):
         self.__current_row = 0
 
         self.__filepath_to_size = pd.read_csv(filepath_to_size_path).sort_values(by=['filepath'])
-        self.__filepath_to_size['end_index'] = list(accumulate(self.__filepath_to_size['size']))
-        self.__filepath_to_size['start_index'] = [0] + list(self.__filepath_to_size['end_index'].iloc()[:-1])
 
         self.__index_to_file_index = self.__generate_index(self.__filepath_to_size)
         self.__filepath_to_start_and_end_index = self.__filepath_to_size.set_index('filepath').to_dict('index')
@@ -32,7 +30,8 @@ class TranscriptionDataset(Dataset):
         if idx >= self.__max_rows:
             raise IndexError
 
-        current_file_path = self.__index_to_file_index[idx]
+        current_file_index = self.__index_to_file_index[idx]
+        current_file_path = self.__files[current_file_index]
         current_file_path_start_index = self.__filepath_to_start_and_end_index[current_file_path]['start_index']
 
         idx = idx - current_file_path_start_index
