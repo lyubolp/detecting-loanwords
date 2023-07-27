@@ -1,18 +1,17 @@
 """
 Module that contains the TranscriptionDataset class
 """
-import pandas as pd
-
-from itertools import accumulate
-from torch.utils.data import Dataset
 from typing import Dict
+
+import pandas as pd
+from torch.utils.data import Dataset
 
 
 class TranscriptionDataset(Dataset):
     """
     Class that represents the transcrition dataset
     """
-    def __init__(self, files, start_file=0,
+    def __init__(self, files,
                  filepath_to_size_path='/mnt/d/Projects/masters-thesis/data/filepath_to_size.csv'):
         self.__files = files
         self.__current_row = 0
