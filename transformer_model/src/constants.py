@@ -1,3 +1,9 @@
+"""
+Module containing the constants
+"""
+import torch
+
+
 MAX_LENGTH = 1000
 SOS_TOKEN = 2648747
 EOS_TOKEN = 2648748
@@ -17,3 +23,5 @@ vocab_transform = {}
 UNK_IDX, PAD_IDX, BOS_IDX, EOS_IDX = 0, 1, 2, 3
 # Make sure the tokens are in order of their indices to properly insert them in vocab
 special_symbols = ['<unk>', '<pad>', '<bos>', '<eos>']
+
+device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
