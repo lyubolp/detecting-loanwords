@@ -5,7 +5,7 @@ from guppy import hpy
 
 files = load_files('/mnt/d/Projects/masters-thesis/data/transcriptions')
 
-train_dataset = TranscriptionDataset(files, index_offset=0)
+train_dataset = TranscriptionDataset(files, start_index=0)
 # After loading files list
 print('---After loading the dataset---')
 h = hpy()

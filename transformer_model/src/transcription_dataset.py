@@ -1,6 +1,7 @@
 """
 Module that contains the TranscriptionDataset class
 """
+import bisect
 import gc
 from typing import Dict
 
@@ -14,19 +15,20 @@ class TranscriptionDataset(Dataset):
     """
     def __init__(self, files,
                  filepath_to_size_path='/mnt/d/Projects/masters-thesis/data/filepath_to_size.csv',
-                 index_offset=0):
+                 start_index=0, end_index=-1):
         self.__files = files
         self.__filepath_to_size = pd.read_csv(filepath_to_size_path).sort_values(by=['filepath'])
 
-        self.__total_lines = self.__filepath_to_size['size'].sum()
         self.__index_to_file_index = self.__generate_index(self.__filepath_to_size) # <- This is the memory hog
+        self.__files_start_indexes = list(self.__index_to_file_index.keys())
 
         self.__filepath_to_start_and_end_index = self.__filepath_to_size.set_index('filepath').to_dict('index')
-        self.__max_rows = max(self.__filepath_to_size['end_index'])
+        self.__max_rows: int = max(self.__filepath_to_size['end_index'])
 
-        self.__index_offset = index_offset
+        self.__start_index = start_index
+        self.__end_index = end_index if end_index != -1 else self.__max_rows
 
-        # Free up some memory  
+        # Free up some memory
         del self.__filepath_to_size
         gc.collect()
 
@@ -35,14 +37,19 @@ class TranscriptionDataset(Dataset):
 
 
     def __len__(self):
-        return self.__total_lines
+        return self.__end_index - self.__start_index
 
     def __getitem__(self, idx):
-        idx += self.__index_offset
+        idx += self.__start_index
         if idx >= self.__max_rows:
             raise IndexError
 
-        current_file_index = self.__index_to_file_index[idx]
+        # need to find the start index
+        # from the start index, need to find which file index that is
+        # from the file index, the file needs to be found
+
+        start_index = bisect.bisect(self.__files_start_indexes, idx) - 1
+        current_file_index = self.__index_to_file_index[start_index]
         current_file_path = self.__files[current_file_index]
         current_file_path_start_index = self.__filepath_to_start_and_end_index[current_file_path]['start_index']
 
@@ -65,9 +72,7 @@ class TranscriptionDataset(Dataset):
         result = {}
 
         for i, row in enumerate(filepath_to_size.iloc()):
-            start_index, end_index = row['start_index'], row['end_index']
-
-            for index in range(start_index, end_index):
-                result[index] = i
+            start_index = row['start_index']
+            result[start_index] = i
 
         return result
