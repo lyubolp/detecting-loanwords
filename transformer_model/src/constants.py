@@ -1,8 +1,10 @@
 """
 Module containing the constants
 """
-import torch
+from typing import Dict
 
+import torch
+from torchtext.vocab import Vocab
 
 MAX_LENGTH = 1000
 SOS_TOKEN = 2648747
@@ -17,7 +19,7 @@ RANDOM_SEED = 42
 SRC_LANGUAGE = 'src'
 TGT_LANGUAGE = 'tgt'
 
-vocab_transform = {}
+vocab_transform: Dict[str, Vocab] = {}
 
 # Define special symbols and indices
 UNK_IDX, PAD_IDX, BOS_IDX, EOS_IDX = 0, 1, 2, 3

@@ -1,6 +1,7 @@
 """
 Module that contains the TranscriptionDataset class
 """
+import gc
 from typing import Dict
 
 import pandas as pd
@@ -12,20 +13,32 @@ class TranscriptionDataset(Dataset):
     Class that represents the transcrition dataset
     """
     def __init__(self, files,
-                 filepath_to_size_path='/mnt/d/Projects/masters-thesis/data/filepath_to_size.csv'):
+                 filepath_to_size_path='/mnt/d/Projects/masters-thesis/data/filepath_to_size.csv',
+                 index_offset=0):
         self.__files = files
-        self.__current_row = 0
-
         self.__filepath_to_size = pd.read_csv(filepath_to_size_path).sort_values(by=['filepath'])
 
-        self.__index_to_file_index = self.__generate_index(self.__filepath_to_size)
+        self.__total_lines = self.__filepath_to_size['size'].sum()
+        self.__index_to_file_index = self.__generate_index(self.__filepath_to_size) # <- This is the memory hog
+
         self.__filepath_to_start_and_end_index = self.__filepath_to_size.set_index('filepath').to_dict('index')
         self.__max_rows = max(self.__filepath_to_size['end_index'])
 
+        self.__index_offset = index_offset
+
+        # Free up some memory  
+        del self.__filepath_to_size
+        gc.collect()
+
+        self.__last_file_path = ''
+        self.__last_file = None
+
+
     def __len__(self):
-        return len(self.__files)
+        return self.__total_lines
 
     def __getitem__(self, idx):
+        idx += self.__index_offset
         if idx >= self.__max_rows:
             raise IndexError
 
@@ -35,9 +48,15 @@ class TranscriptionDataset(Dataset):
 
         idx = idx - current_file_path_start_index
 
-        current_file = pd.read_csv(current_file_path)
+        if current_file_path != self.__last_file_path:
+            current_file = pd.read_csv(current_file_path)
 
-        row = current_file.iloc[self.__current_row]
+            self.__last_file_path = current_file_path
+            self.__last_file = current_file
+        else:
+            current_file = self.__last_file
+
+        row = current_file.iloc[idx]
 
         return row[0], row[2]
 
