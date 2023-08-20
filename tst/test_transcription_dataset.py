@@ -9,7 +9,7 @@ from typing import List, Tuple
 
 import pandas as pd
 
-from transformer_model.src.transcription_dataset import TranscriptionDataset
+from src.transcription_dataset import TranscriptionDataset
 
 
 class TranscriptDatasetTests(unittest.TestCase):
@@ -21,23 +21,23 @@ class TranscriptDatasetTests(unittest.TestCase):
         """
         Set up the tests
         """
-        super().setUpClass()
 
         # We need the following structure created
 
         # Files with some lines
         
         cls.__files_content = [
-            [('apple', 'banana'), ('carrot', 'orange'), ('grape', 'melon')],
-            [('house', 'tree'), ('river', 'ocean'), ('mount', 'hill'), ('city', 'town')],
-            [('dog', 'cat'), ('bird', 'fish')],
-            [('shirt', 'pants'), ('shoe', 'sock')],
-            [('book', 'pen'), ('paper', 'pencil'), ('note', 'desk')]
+            [('apple', '', 'banana'), ('carrot', '', 'orange'), ('grape', '', 'melon')],
+            [('house', '', 'tree'), ('river', '', 'ocean'), ('mount', '', 'hill'), ('city', '', 'town')],
+            [('dog', '', 'cat'), ('bird', '', 'fish')],
+            [('shirt', '', 'pants'), ('shoe', '', 'sock')],
+            [('book', '', 'pen'), ('paper', '', 'pencil'), ('note', '', 'desk')]
         ]
-        cls.__files = [f'file{i+1}.txt' for i in range(len(cls.__files_content))]
         cls.__transcription_dir = '/tmp/transcription_dataset_tests'
+        cls.__filenames = [f'file{i+1}.txt' for i in range(len(cls.__files_content))]
+        cls.__files = [os.path.join(cls.__transcription_dir, filename) for filename in cls.__filenames]
         
-        os.makedirs(cls.__transcription_dir)
+        os.makedirs(cls.__transcription_dir, exist_ok=True)
         TranscriptDatasetTests.__create_files(cls.__files, cls.__files_content,
                                               cls.__transcription_dir)
 
@@ -45,51 +45,81 @@ class TranscriptDatasetTests(unittest.TestCase):
                                                  'filepath_to_size.csv')
         filepath_to_size = TranscriptDatasetTests.__generate_filepath_to_size(cls.__files,
                                                                               cls.__files_content)
-        filepath_to_size.to_csv(cls.__filepath_to_size_filename)
+        filepath_to_size.to_csv(cls.__filepath_to_size_filename, index=False)
 
 
-    @classmethod
-    def tearDownClass(cls) -> None:
-        super().tearDownClass()
+    # @classmethod
+    # def tearDownClass(cls) -> None:
 
-        TranscriptDatasetTests.__remove_files(cls.__transcription_dir, cls.__files)
-        os.removedirs(cls.__transcription_dir)
+    #     TranscriptDatasetTests.__remove_files(cls.__transcription_dir, cls.__files)
+    #     os.removedirs(cls.__transcription_dir)
 
     def test_01_no_start_no_end(self):
         # Arrange
 
         dataset = TranscriptionDataset(self.__files, self.__filepath_to_size_filename)
         expected = sum(self.__files_content, [])
+        expected = [(item[0], item[2]) for item in expected]
 
         # Act
-        actual = [dataset[i] for i in  range(len(dataset))]
-            
+        actual = [dataset[i] for i in range(len(dataset))]
+
         # Assert
         self.assertEqual(expected, actual)
 
-    # def test_02_start_no_end(self):
-    #     # Arrange
-    #     # Act
-    #     # Assert
-    #     pass
+    def test_02_start_no_end(self):
+        # Arrange
+        start_index = 2
 
-    # def test_03_no_start_end(self):
-    #     # Arrange
-    #     # Act
-    #     # Assert
-    #     pass
+        dataset = TranscriptionDataset(self.__files, self.__filepath_to_size_filename,
+                                       start_index=start_index)
+        expected = sum(self.__files_content, [])
+        expected = [(item[0], item[2]) for item in expected][start_index:]
 
-    # def test_04_start_end_index(self):
-    #     # Arrange
-    #     # Act
-    #     # Assert
-    #     pass
+        # Act
+        actual = [dataset[i] for i in range(len(dataset))]
+
+        # Assert
+        self.assertEqual(expected, actual)
+
+    def test_03_no_start_end(self):
+        # Arrange
+        end_index = 2
+
+        dataset = TranscriptionDataset(self.__files, self.__filepath_to_size_filename,
+                                       end_index=end_index)
+        expected = sum(self.__files_content, [])
+        expected = [(item[0], item[2]) for item in expected][:end_index]
+
+        # Act
+        actual = [dataset[i] for i in range(len(dataset))]
+
+        # Assert
+        self.assertEqual(expected, actual)
+
+
+    def test_04_start_end_index(self):
+        # Arrange
+        start_index = 2
+        end_index = 9
+
+        dataset = TranscriptionDataset(self.__files, self.__filepath_to_size_filename,
+                                       start_index=start_index, end_index=end_index)
+        expected = sum(self.__files_content, [])
+        expected = [(item[0], item[2]) for item in expected][start_index:end_index]
+
+        # Act
+        actual = [dataset[i] for i in range(len(dataset))]
+    
+        # Assert
+        self.assertEqual(expected, actual)
+
 
     @staticmethod
     def __create_files(files: List[str], content: List[List[Tuple[str, str]]], directory_path: str):
-        for filename, file_content in zip(files, content):
-            filepath = os.path.join(directory_path, filename)
+        for filepath, file_content in zip(files, content):
             with open(filepath, 'w+', encoding='utf-8') as filepointer:
+                filepointer.writelines('word,transcription,translation\n')
                 for pair in file_content:
                     filepointer.writelines(','.join(pair) + '\n')
 

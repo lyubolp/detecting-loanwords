@@ -4,8 +4,8 @@ for the dataset
 """
 import unittest
 
-from transformer_model.src.dataset_utils import yield_tokens, sentence_to_tensor
-from transformer_model.src.constants import SRC_LANGUAGE, TGT_LANGUAGE
+from src.dataset_utils import yield_tokens, sentence_to_tensor
+from src.constants import SRC_LANGUAGE, TGT_LANGUAGE
 
 
 def identity(item):
