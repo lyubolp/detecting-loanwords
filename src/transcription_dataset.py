@@ -48,7 +48,7 @@ class TranscriptionDataset(Dataset):
         # from the start index, need to find which file index that is
         # from the file index, the file needs to be found
 
-        start_index = bisect.bisect(self.__files_start_indexes, idx) - 1
+        start_index = self.__files_start_indexes[bisect.bisect(self.__files_start_indexes, idx) - 1]
         current_file_index = self.__index_to_file_index[start_index]
         current_file_path = self.__files[current_file_index]
         current_file_path_start_index = self.__filepath_to_start_and_end_index[current_file_path]['start_index']
