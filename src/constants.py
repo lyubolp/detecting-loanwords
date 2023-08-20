@@ -6,18 +6,18 @@ from typing import Dict
 import torch
 from torchtext.vocab import Vocab
 
-MAX_LENGTH = 1000
-SOS_TOKEN = 2648747
-EOS_TOKEN = 2648748
-TEACHER_FORCING_RATIO = 0.5
-LEARNING_RATE = 0.01
-HIDDEN_SIZE = 256
+MAX_LENGTH: int = 1000
+SOS_TOKEN: int = 2648747
+EOS_TOKEN: int = 2648748
+TEACHER_FORCING_RATIO: float = 0.5
+LEARNING_RATE: float = 0.01
+HIDDEN_SIZE: int = 256
 
-TRAIN_TEST_SPLIT = 0.8
-RANDOM_SEED = 42
+TRAIN_TEST_SPLIT: float = 0.8
+RANDOM_SEED: int = 42
 
-SRC_LANGUAGE = 'src'
-TGT_LANGUAGE = 'tgt'
+SRC_LANGUAGE: str = 'src'
+TGT_LANGUAGE: str = 'tgt'
 
 vocab_transform: Dict[str, Vocab] = {}
 
