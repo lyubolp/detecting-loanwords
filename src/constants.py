@@ -14,6 +14,7 @@ LEARNING_RATE: float = 0.01
 HIDDEN_SIZE: int = 256
 
 TRAIN_TEST_SPLIT: float = 0.8
+TRAIN_VALIDATION_SPLIT: float = 0.1
 RANDOM_SEED: int = 42
 
 SRC_LANGUAGE: str = 'src'
@@ -27,3 +28,4 @@ UNK_IDX, PAD_IDX, BOS_IDX, EOS_IDX = 0, 1, 2, 3
 special_symbols = ['<unk>', '<pad>', '<bos>', '<eos>']
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+# device = 'cpu'

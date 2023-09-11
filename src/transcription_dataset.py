@@ -27,6 +27,7 @@ class TranscriptionDataset(Dataset):
 
         self.__start_index = start_index
         self.__end_index = end_index if end_index != -1 else self.__max_rows
+        self.__length = self.__end_index - self.__start_index
 
         # Free up some memory
         del self.__filepath_to_size
@@ -37,13 +38,13 @@ class TranscriptionDataset(Dataset):
 
 
     def __len__(self):
-        return self.__end_index - self.__start_index
+        return self.__length
 
     def __getitem__(self, idx):
-        idx += self.__start_index
-        if idx >= self.__max_rows:
+        if idx >= self.__length:
             raise IndexError
 
+        idx += self.__start_index
         # need to find the start index
         # from the start index, need to find which file index that is
         # from the file index, the file needs to be found
@@ -65,7 +66,17 @@ class TranscriptionDataset(Dataset):
 
         row = current_file.iloc[idx]
 
-        return row[0], row[2]
+        if isinstance(row[0], str):
+            sentence = row[0]
+        else:
+            sentence = ''
+
+        if isinstance(row[2], str):
+            transcription = row[2]
+        else:
+            transcription = ''
+
+        return sentence, transcription
 
     @staticmethod
     def __generate_index(filepath_to_size: pd.DataFrame) -> Dict[int, int]:
