@@ -3,9 +3,9 @@ Module that contains the function that splits a word into syllables.
 """
 __all__ = ['split_word']
 
-vowels = ['а', 'ъ', 'о', 'у', 'е', 'и']
+default_vowels = ['а', 'ъ', 'о', 'у', 'е', 'и']
 
-def get_vowels_count(word: str) -> int:
+def get_vowels_count(word: str, vowels) -> int:
     """
     Returns the amount of vowels in a word.
     :param word: The word to check.
@@ -13,7 +13,7 @@ def get_vowels_count(word: str) -> int:
     """
     return len([x for x in word if x in vowels])
 
-def get_first_vowel_location(word: str) -> int:
+def get_first_vowel_location(word: str, vowels) -> int:
     """
     Returns the index of the first vowel in a word.
     :param word: The word to check.
@@ -24,19 +24,23 @@ def get_first_vowel_location(word: str) -> int:
             return index
     return -1
 
-def split_word(word: str) -> list[str]:
+def split_word(word: str, vowels=None) -> list[str]:
     """
     Splits a word into syllables.
     :param word: The word to split.
     :return: A list of syllables.
     """
-    volews_count = get_vowels_count(word)
+
+    if vowels is None:
+        vowels = default_vowels
+
+    volews_count = get_vowels_count(word, vowels)
 
     result = []
 
     while volews_count > 1:
-        first_vowel_location = get_first_vowel_location(word)
-        second_vowel_location = get_first_vowel_location(word[first_vowel_location + 1:]) + first_vowel_location + 1
+        first_vowel_location = get_first_vowel_location(word, vowels)
+        second_vowel_location = get_first_vowel_location(word[first_vowel_location + 1:], vowels) + first_vowel_location + 1
 
         amount_of_consonants = second_vowel_location - first_vowel_location - 1
 
@@ -56,7 +60,7 @@ def split_word(word: str) -> list[str]:
         
         result.append(word[:cut_index])
         word = word[cut_index:]
-        volews_count = get_vowels_count(word)
+        volews_count = get_vowels_count(word, vowels)
     
     result.append(word)
 
