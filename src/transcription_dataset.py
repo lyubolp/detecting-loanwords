@@ -8,12 +8,20 @@ from typing import Dict
 import pandas as pd
 from torch.utils.data import Dataset
 
+from src.syllable_splitter import split_word
+from src.dataset_utils import identity
+
+
+vowels_transcription = ['a', 'ʌ', 'ɤ̞',  'ɐ', 'ɔ', 'o', 'u', 'ɛ', 'i']
+
 
 class TranscriptionDataset(Dataset):
     """
     Class that represents the transcrition dataset
     """
     def __init__(self, files,
+                 tokenization_src=None,
+                 tokenization_tgt=None,
                  filepath_to_size_path='/mnt/d/Projects/masters-thesis/data/filepath_to_size.csv',
                  start_index=0, end_index=-1):
         self.__files = files
@@ -35,6 +43,9 @@ class TranscriptionDataset(Dataset):
 
         self.__last_file_path = ''
         self.__last_file = None
+
+        self.__tokenization_src = tokenization_src if tokenization_src is not None else identity
+        self.__tokenization_tgt = tokenization_tgt if tokenization_tgt is not None else identity
 
 
     def __len__(self):
@@ -76,7 +87,7 @@ class TranscriptionDataset(Dataset):
         else:
             transcription = ''
 
-        return sentence, transcription
+        return self.__tokenization_src(sentence), self.__tokenization_tgt(transcription)
 
     @staticmethod
     def __generate_index(filepath_to_size: pd.DataFrame) -> Dict[int, int]:

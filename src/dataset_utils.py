@@ -9,13 +9,16 @@ from nltk.tokenize import word_tokenize
 from torchtext.vocab import build_vocab_from_iterator
 
 import src.constants as const
+from src.syllable_splitter import split_word
+
+vowels_transcription = ['a', 'ʌ', 'ɤ̞',  'ɐ', 'ɔ', 'o', 'u', 'ɛ', 'i']
 
 # helper function to yield list of tokens
 def yield_tokens(data_iter: Iterable, language: str, word_tokenizer: Callable = word_tokenize) -> Generator:
     language_index = {const.SRC_LANGUAGE: 0, const.TGT_LANGUAGE: 1}
 
     for data_sample in data_iter:
-        yield word_tokenizer(data_sample[language_index[language]])
+        yield data_sample[language_index[language]]
 
 # function to convert a sentence to a tensor
 # Might be dead code
@@ -43,3 +46,19 @@ def build_vocab_transformation(dataset, language):
     vocab.set_default_index(const.UNK_IDX)
 
     return vocab
+
+def tokenize_source(sentence) -> list[str]:
+    return __tokenize(sentence)
+
+def tokenize_target(sentence) -> list[str]:
+    return __tokenize(sentence, vowels_transcription)
+
+def __tokenize(sentence, volews=None) -> list[str]:
+    word_tokenized = word_tokenize(sentence)
+    syllables_tokenized = [split_word(word, volews) for word in word_tokenized]
+    flattened: list[str] = sum(syllables_tokenized, [])
+
+    return flattened
+
+def identity(*args):
+    return args
