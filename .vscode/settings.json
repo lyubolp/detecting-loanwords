@@ -1,16 +1,13 @@
 {
+    "python.envFile": "${workspaceFolder}/.venv",
+    "python.pythonPath": "${workspaceFolder}/.venv/bin/python",
     "python.testing.unittestArgs": [
         "-v",
         "-s",
-        "./transformer_model/tst",
+        "./tst",
         "-p",
         "test_*.py"
     ],
     "python.testing.pytestEnabled": false,
     "python.testing.unittestEnabled": true,
-    "python.linting.enabled": true,
-    "python.linting.pylintEnabled": true,
-    "python.linting.pylintArgs": [
-        "--disable=F0401"
-    ] 
 }
