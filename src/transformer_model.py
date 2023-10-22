@@ -8,7 +8,6 @@ from typing import Iterable, List
 # Third party imports
 import pandas as pd
 import torch
-import tqdm
 
 from nltk.tokenize import word_tokenize
 
@@ -41,7 +40,7 @@ class PositionalEncoding(nn.Module):
         super(PositionalEncoding, self).__init__()
         den = torch.exp(- torch.arange(0, emb_size, 2)* math.log(10000) / emb_size)
         pos = torch.arange(0, maxlen).reshape(maxlen, 1)
-        pos_embedding = torch.zeros((maxlen, emb_size))
+        pos_embedding: Tensor = torch.zeros((maxlen, emb_size))
         pos_embedding[:, 0::2] = torch.sin(pos * den)
         pos_embedding[:, 1::2] = torch.cos(pos * den)
         pos_embedding = pos_embedding.unsqueeze(-2)
@@ -108,3 +107,21 @@ class Seq2SeqTransformer(nn.Module):
         return self.transformer.decoder(self.positional_encoding(
                           self.tgt_tok_emb(tgt)), memory,
                           tgt_mask)
+    
+
+def generate_square_subsequent_mask(sz):
+    mask = (torch.triu(torch.ones((sz, sz), device=const.device)) == 1).transpose(0, 1)
+    mask = mask.float().masked_fill(mask == 0, float('-inf')).masked_fill(mask == 1, float(0.0))
+    return mask
+
+
+def create_mask(src, tgt):
+    src_seq_len = src.shape[0]
+    tgt_seq_len = tgt.shape[0]
+
+    tgt_mask = generate_square_subsequent_mask(tgt_seq_len)
+    src_mask = torch.zeros((src_seq_len, src_seq_len),device=const.device).type(torch.bool)
+
+    src_padding_mask = (src == const.PAD_IDX).transpose(0, 1)
+    tgt_padding_mask = (tgt == const.PAD_IDX).transpose(0, 1)
+    return src_mask, tgt_mask, src_padding_mask, tgt_padding_mask

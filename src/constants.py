@@ -29,3 +29,9 @@ special_symbols = ['<unk>', '<pad>', '<bos>', '<eos>']
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 # device = 'cpu'
+
+EMB_SIZE = 512
+NHEAD = 8
+FFN_HID_DIM = 512
+NUM_ENCODER_LAYERS = 3
+NUM_DECODER_LAYERS = 3
