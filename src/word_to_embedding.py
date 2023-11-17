@@ -20,55 +20,57 @@ NUM_ENCODER_LAYERS = 3
 NUM_DECODER_LAYERS = 3
 
 
-def __load_model(state_dict_path: str):
-    transformer = Seq2SeqTransformer(NUM_ENCODER_LAYERS, NUM_DECODER_LAYERS, EMB_SIZE,
-                                     NHEAD, SRC_VOCAB_SIZE, TGT_VOCAB_SIZE, FFN_HID_DIM)
-    transformer = transformer.to(const.device)
-    transformer.load_state_dict(torch.load(state_dict_path))
+class WordToEmbedding:
+    def __init__(self):
+        self.__model = self.__load_model('models/transformer-single-word-2023-11-10-606102-25.pth')
+        self.__dataset = self.__load_dataset('/mnt/d/Projects/masters-thesis/data/single_words.txt')
+        self.__text_transform_src = self.__get_text_transform(self.__dataset)
 
-    return transformer
+    @staticmethod
+    def __load_model(state_dict_path: str) -> Seq2SeqTransformer:
+        transformer = Seq2SeqTransformer(NUM_ENCODER_LAYERS, NUM_DECODER_LAYERS, EMB_SIZE,
+                                         NHEAD, SRC_VOCAB_SIZE, TGT_VOCAB_SIZE, FFN_HID_DIM)
+        transformer = transformer.to(const.device)
+        transformer.load_state_dict(torch.load(state_dict_path))
 
+        return transformer
 
-def __load_dataset(words_filepath: str):
-    vowels_transcription = ['a', 'ʌ', 'ɤ̞',  'ɐ', 'ɔ', 'o', 'u', 'ɛ', 'i']
+    @staticmethod
+    def __load_dataset(words_filepath: str) -> TranscriptionDataset:
+        vowels_transcription = ['a', 'ʌ', 'ɤ̞',  'ɐ', 'ɔ', 'o', 'u', 'ɛ', 'i']
 
-    with open(words_filepath, 'r') as f:
-        words = f.readlines()
+        with open(words_filepath, 'r') as f:
+            words = f.readlines()
 
-    amount_of_words = len(words)
+        amount_of_words = len(words)
 
-    sentences_to_use = amount_of_words
+        sentences_to_use = amount_of_words
 
-    train_split = int(const.TRAIN_TEST_SPLIT * sentences_to_use)
+        train_split = int(const.TRAIN_TEST_SPLIT * sentences_to_use)
 
-    train_dataset = TranscriptionDataset(words_filepath, tokenization_src=split_word,
-                                         tokenization_tgt=lambda x: split_word(x, vowels_transcription),
-                                         start_index=0, end_index=train_split)
+        train_dataset = TranscriptionDataset(words_filepath, tokenization_src=split_word,
+                                             tokenization_tgt=lambda x: split_word(x, vowels_transcription),
+                                             start_index=0, end_index=train_split)
 
-    return train_dataset
+        return train_dataset
 
+    @staticmethod
+    def __get_text_transform(dataset: TranscriptionDataset):
+        vocab_transform = build_vocab_transformation(dataset, const.SRC_LANGUAGE)
 
-def __get_text_transform(dataset: TranscriptionDataset):
-    vocab_transform = build_vocab_transformation(dataset, const.SRC_LANGUAGE)
+        text_transform_src = sequential_transforms(tokenize_source,
+                                                   vocab_transform, tensor_transform)
 
-    text_transform_src = sequential_transforms(tokenize_source, vocab_transform, tensor_transform)
+        return text_transform_src
 
-    return text_transform_src
+    def get_embedding(self, word: str):
+        word = word.lower()
+        self.__model.eval()
+        src = self.__text_transform_src(word).view(-1, 1).to(const.device)
 
+        num_tokens = src.shape[0]
+        src_mask = (torch.zeros(num_tokens, num_tokens)).type(torch.bool)
 
-def get_embedding(word: str):
-    model = __load_model('models/transformer-single-word-2023-11-10-606102-25.pth')
-    dataset = __load_dataset('/mnt/d/Projects/masters-thesis/data/single_words.txt')
-    text_transform_src = __get_text_transform(dataset)
+        embedding = self.__model.encode(src.to(const.device), src_mask.to(const.device))[1:-1]
 
-    word = word.lower()
-    model.eval()
-    src = text_transform_src(word).view(-1, 1).to(const.device)
-
-    num_tokens = src.shape[0]
-    src_mask = (torch.zeros(num_tokens, num_tokens)).type(torch.bool)
-
-    embedding = model.encode(src.to(const.device), src_mask.to(const.device))[1:-1]
-
-    return embedding[:, 0, :].cpu().detach().numpy()
-    # return (sum(embedding) / len(embedding))[0].cpu().detach().numpy()
+        return embedding[:, 0, :].cpu().detach().numpy()
