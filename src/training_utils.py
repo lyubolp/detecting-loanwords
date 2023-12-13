@@ -24,7 +24,9 @@ def train_epoch(model, optimizer, train_dataloader, loss_fn):
     model.train()
     losses = 0
 
+    i = 0
     for src, tgt in train_dataloader:
+        i += 1
         src = src.to(const.device)
         tgt = tgt.to(const.device)
 
