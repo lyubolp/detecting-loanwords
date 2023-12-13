@@ -26,6 +26,8 @@ class WordToEmbedding:
         self.__dataset = self.__load_dataset('/mnt/d/Projects/masters-thesis/data/single_words.txt')
         self.__text_transform_src = self.__get_text_transform(self.__dataset)
 
+        self.__model.eval()
+
     @staticmethod
     def __load_model(state_dict_path: str) -> Seq2SeqTransformer:
         transformer = Seq2SeqTransformer(NUM_ENCODER_LAYERS, NUM_DECODER_LAYERS, EMB_SIZE,
@@ -65,7 +67,6 @@ class WordToEmbedding:
 
     def get_embedding(self, word: str):
         word = word.lower()
-        self.__model.eval()
         src = self.__text_transform_src(word).view(-1, 1).to(const.device)
 
         num_tokens = src.shape[0]
