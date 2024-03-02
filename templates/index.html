@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <div id="sub-container">
+        <h1>Въведи изречение, което да бъде анализирано: </h1> <br/>
+        <form action="/analyze" method="post">
+            <input type="text" class="form-control" name="sentence">
+            <input type="submit" value="Анализирай"  class="btn btn-primary">
+        </form>
+        
+    </div>
+    
+
+{% endblock %}

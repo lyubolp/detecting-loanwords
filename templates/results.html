@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+
+{% block content %}
+    
+    <div id="sub-container-results">
+        {% for word in words%}
+            {% if word in analysis %}
+                <div class="result">
+                    <p>{{word}}</p>
+                    {% for language, percentange in analysis[word].items() %}
+                        <p>{{language}}: {{percentange}}</p>
+                    {% endfor %}
+                </div>
+                
+            {% else %}
+                <p>{{word}}</p>
+            {% endif %}
+        {% endfor %}
+    </div>
+    
+
+{% endblock %}s
