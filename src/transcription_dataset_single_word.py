@@ -23,13 +23,13 @@ class TranscriptionDataset(Dataset):
                  start_index=0, end_index=-1):
         self.__filepath = filepath
         self.__data = pd.read_csv(filepath)
-        self.__length = len(self.__data)
 
         self.__tokenization_src = tokenization_src if tokenization_src is not None else identity
         self.__tokenization_tgt = tokenization_tgt if tokenization_tgt is not None else identity
 
         self.__start_index = start_index
-        self.__end_index = end_index if end_index != -1 else self.__length
+        self.__end_index = end_index if end_index != -1 else len(self.__data)
+        self.__length = self.__end_index - self.__start_index
     
     def __len__(self):
         return self.__length
